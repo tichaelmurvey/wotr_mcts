@@ -97,7 +97,13 @@ class WotrGame:
     def offer_move(self):
         action_needed = self.action_triage.pop()
         self.current_action_space = self.moves_generator.generate_moves(action_needed)
-
+        if self.verbose: print("=== MOVE CHOICE ===")
+        if self.verbose: 
+            for action in self.current_action_space.action_set:
+                for move in action:
+                    print(move.move_type.name)
+                    print(move.move_target)
+ 
     def progress_game(self):
         if self.verbose: print("progressing game")
         if len(self.action_triage) > 0:

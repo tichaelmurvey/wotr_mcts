@@ -22,8 +22,12 @@ class ActionOperator:
     execute_action: ExecuteFn
 
 from game_env.moves.card_moves import discard_operator
-ACTION_OPERATORS: List[ActionOperator] = []
-ACTION_OPERATORS.insert(MT.EVENT_CARD_DISCARD, discard_operator)
+from game_env.moves.fellowship_moves import change_guide_operator, declare_operator
+ACTION_OPERATORS: dict[MT, ActionOperator] = {
+    MT.EVENT_CARD_DISCARD: discard_operator,
+    MT.CHANGE_GUIDE: change_guide_operator,
+    MT.DECLARE_FELLOWSHIP: declare_operator,
+}
 
 
 class MovesGenerator:

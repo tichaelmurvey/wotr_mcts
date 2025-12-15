@@ -24,41 +24,37 @@ M = MinionName
 class CharacterStats(NamedTuple):
     level: float
     leadership: int
-    add_die: bool
     name: str
     abilities: Tuple[str, ...]
+    add_die: bool = False
 
+wking = CharacterStats(float("inf"), 2, "Witch King", ("smth", "smth else"), True)
+saruman = CharacterStats(float("inf"), 2, "Witch King", ("smth", "smth else"), True)
+mouth = CharacterStats(float("inf"), 2, "Witch King", ("smth", "smth else"), True)
+gandalf_white = CharacterStats(4, 2, "Gandalf the White", ("shine", "teleport"), True)
+aragorn = CharacterStats(4, 2, "Aragorn", ("shine", "teleport"), True)
+gandalf_grey = CharacterStats(3, 2, "Gandalf the Grey", ("shine", "teleport"))
+strider = CharacterStats(3, 1, "Gandalf the White", ("shine", "teleport"))
+boromir = CharacterStats(2, 1, "Gandalf the White", ("shine", "teleport"))
+legolas = CharacterStats(2, 1, "Gandalf the White", ("shine", "teleport"))
+gimli = CharacterStats(2, 1, "Gandalf the White", ("shine", "teleport"))
+merry = CharacterStats(1, 1, "Gandalf the White", ("shine", "teleport"))
+pippin = CharacterStats(1, 1, "Gandalf the White", ("shine", "teleport"))
 
-class AllCharacterStats(NamedTuple):
-    wking: CharacterStats
-    mouth: CharacterStats
-    saru: CharacterStats
-    gandalf_grey: CharacterStats
-    gandalf_white: CharacterStats
-    strider: CharacterStats
-    aragorn: CharacterStats
-    legolas: CharacterStats
-    boromir: CharacterStats
-    gimli: CharacterStats
-    merry: CharacterStats
-    pippin: CharacterStats
+CHARACTER_STATS: dict[CompanionName | MinionName, CharacterStats] = {
+    C.GANDALF_GREY: gandalf_grey,
+    C.STRIDER: strider,
+    C.BOROMIR: boromir,
+    C.LEGOLAS: legolas,
+    C.GIMLI: gimli,
+    C.PIPPIN: pippin,
+    C.MERRY: merry,
+    C.ARAGORN: aragorn,
+    C.GANDALF_WHITE: gandalf_white,
+    M.WITCH_KING: wking,
+    M.MOUTH: mouth,
+    M.SARUMAN: saruman,
+}
 
-
-wking = CharacterStats(float("inf"), 2, True, "Witch King", ("smth", "smth else"))
-gandalf_white = CharacterStats(4, 2, True, "Gandalf the White", ("shine", "teleport"))
-
-CHARACTER_STATS = AllCharacterStats(
-    wking=wking,
-    mouth=wking,
-    saru=wking,
-    gandalf_grey=gandalf_white,
-    gandalf_white=gandalf_white,
-    strider=gandalf_white,
-    aragorn=gandalf_white,
-    legolas=gandalf_white,
-    boromir=gandalf_white,
-    gimli=gandalf_white,
-    merry=gandalf_white,
-    pippin=gandalf_white,
-)
-COMPANION_NAMES: tuple[CompanionName, ...] = get_args(CompanionName)
+COMPANION_NAMES: tuple[CompanionName, ...] = tuple(CompanionName)
+MINION_NAMES: tuple[MinionName, ...] = tuple(MinionName)

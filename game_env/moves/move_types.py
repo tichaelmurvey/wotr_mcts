@@ -6,8 +6,10 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import List, Tuple
 
+from game_env.characters import CompanionName
 from game_env.event_cards.cards import DeckType, EventCard
 from game_env.game_env_enums import Player
+from game_env.regions_enum import R
 
 
 class OptsPolicy(IntEnum):
@@ -36,7 +38,7 @@ class CardReference:
     deck: DeckType
     idx: int
 
-type MoveTarget = CardReference | None
+type MoveTarget = None | CardReference | R | CompanionName
 
 
 @dataclass
