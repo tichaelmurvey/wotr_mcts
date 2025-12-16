@@ -1,0 +1,108 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="content/site.css" type="text/css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="scripts/knockout-latest.js"></script>
+    <script src="scripts/lodash.min.js"></script>
+    <script src="typescript/Controllers/mapController.js"></script>
+    <script src="typescript/Models/regionModels.js"></script>
+    <script src="typescript/start.js"></script>
+    <script src="scripts/consent.js"></script>
+
+    <title>War of the Ring Interactive Map</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-128975439-1"></script>
+</head>
+
+<body>
+    <div id="cookieBanner">
+        <div id="cookieBannerClose"><a href="#">x</a></div>
+        This website uses third party cookies exclusively to collect analytics data.
+        If you continue browsing or close this notice, you will accept their use.
+        <div id="cookieBannerActions">
+            <a class="denyConsent noconsent" href="#">Disallow cookies</a>
+        </div>
+    </div>
+
+    <div class="flag-container">
+        <a href="#" data-bind="click: function() {setLanguage('es');return false;}"><img class="flag" src="images/es.svg" /></a>
+        <a href="#" data-bind="click: function() {setLanguage('en');return false;}"><img class="flag" src="images/us.svg" /></a>
+    </div>
+
+    <div class="map">
+        <img class="image clipped" data-bind="attr: {src: imageUrl}, style: { clipPath: selectedPath }" />
+        <img class="image darker" data-bind="attr: {src: imageUrl}" />
+    </div>
+
+    <div class="regions">
+        <div>
+            <input type="text" class="search-field" data-bind="textInput: searchText, attr: { placeholder: searchPlaceholderText }">
+            <a href="#" data-bind="event: { mouseover: enableHelp, mouseout: disableHelp }"><img class="help-image" /></a>
+            <a class="reset" href="#" data-bind="visible: selectedPath() != '', click: function() { reset(); return false; }">Reset</a>
+            <div class="help-popup" data-bind="visible: isHelpPopupVisible">
+                <ul>
+                    <li>
+                        All the images of the game, names belongs to his creators and owners.
+                        <ul>
+                            <li>Designers: Roberto Di Meglio, Marco Maggi, Francesco Nepitello</li>
+                            <li>Artists: John Howe, Fabio Maiorana</li>
+                            <li>Spanish Version: <a href="http://devir.es/">Devir Iberia</a></li>
+                            <li>English Version: <a href="http://www.aresgames.eu/">Ares Games</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="https://www.freepik.es/fotos-vectores-gratis/fondo">Background photo created by
+                            jannoon028 - www.freepik.es</a>
+                    </li>
+                    <li>
+                        Info icon made by <a href="https://www.flaticon.com/authors/picol" title="Picol">Picol</a> from
+                        <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a
+                            href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC
+                            3.0 BY</a>
+                    </li>
+                    <li>
+                        Flag images by <a href="https://github.com/lipis/flag-icon-css">flag-icon-css</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="regions-container">
+            <ul data-bind="foreach: regions">
+                <!-- ko if: regions().length > 0 -->
+                <li>
+                    <a href="#" data-bind="click: function() {$parent.collapseRegion($data);return false;}"><span class="region-name"
+                            data-bind="text: name, style: { color: color }"></span></a>
+                    <ul data-bind="foreach: regions, visible: !isCollapsed()">
+                        <li>
+                            <a href="#" data-bind="click: function() {$parents[1].showRegion($data);return false;}"><span
+                                    data-bind="text: name;"></span></a>
+                            <img class="fortification" src="images/fortification.png" data-bind="visible: isFortification" />
+                            <img class="town" src="images/shadows_town.png" data-bind="visible: isTown && $parent.isShadows" />
+                            <img class="town" src="images/shadows_city.png" data-bind="visible: isCity && $parent.isShadows" />
+                            <img class="city" src="images/shadows_stronghold.png" data-bind="visible: isStronghold && $parent.isShadows" />
+                            <img class="city" src="images/free_town.png" data-bind="visible: isTown && !$parent.isShadows()" />
+                            <img class="stronghold" src="images/free_city.png" data-bind="visible: isCity && !$parent.isShadows()" />
+                            <img class="stronghold" src="images/free_stronghold.png" data-bind="visible: isStronghold && !$parent.isShadows()" />
+                        </li>
+                    </ul>
+                </li>
+                <!-- /ko -->
+            </ul>
+        </div>
+    </div>
+    <script type="text/javascript">
+        new WarOfTheRingMap.Start();
+    </script>
+</body>
+
+</html>

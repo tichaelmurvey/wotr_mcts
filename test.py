@@ -1,7 +1,6 @@
 
 from __future__ import annotations
 from game_env.game_env import WotrGame
-
-
-game = WotrGame()
-game.start_game(verbose = True)
+from pygame_interface.main import run_with_game
+game = WotrGame(verbose=True)
+run_with_game(game)

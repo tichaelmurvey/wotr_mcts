@@ -1,10 +1,11 @@
 from __future__ import annotations
 from copy import deepcopy
-from typing import TYPE_CHECKING, List, cast
+from typing import TYPE_CHECKING, List, Tuple, cast
 if TYPE_CHECKING:
     from game_env.action_signal_types import ActionRequirement
     from game_env.army import UnitGroup, UnitGroupShadow
     from game_env.action_signal_types import S
+    from game_env.regions.region import R, Region
 
 from game_env.characters import M
 from game_env.action_dice.dice import ActionDieFree, ActionDieShadow
@@ -33,7 +34,6 @@ from game_env.hunt.hunt import Hunt, HuntBox
 from game_env.hunt.hunt_pool import HuntPool
 from game_env.moves.action_generator import MovesGenerator
 from game_env.moves.move_types import MT, ActionChoice, ActionSpace
-from game_env.regions.region import R
 from game_env.regions.regions_data import regions_init
 from game_env.regions.starting_positions import STARTING_POSITIONS
 
@@ -45,9 +45,13 @@ class WotrGame:
     minion_pos: dict[M, R | None]
     phase: GAME_PHASE
     turn: int
+    regions: Tuple[Region, ...]
+    verbose: bool
 
-    def __init__(self):
-        pass
+    def __init__(self, verbose: bool = False):
+        self.verbose = verbose
+        self.reset()
+        print("instancing")
 
     def reset(self):
         if self.verbose: print("resetting")

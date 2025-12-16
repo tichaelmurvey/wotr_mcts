@@ -5,10 +5,6 @@ from typing import NamedTuple, cast
 from game_env.characters import CHARACTER_STATS, CompanionName, MinionName
 from game_env.game_env_enums import P
 
-
-
-
-
 class FreeUnit(IntEnum):
     nort_reg = 0
     nort_elt = 1
