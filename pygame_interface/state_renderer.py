@@ -111,6 +111,16 @@ class StateRenderer:
                 in_mordor=fellowship.in_mordor,
             )
 
+            # Update fellowship box display on the board
+            # Companions list excludes the guide
+            companions_without_guide = [
+                c for c in fellowship.companions if c != fellowship.guide
+            ]
+            self.interface.board.set_fellowship_box_data(
+                companions=companions_without_guide,
+                guide=fellowship.guide,
+            )
+
     def _update_player_state(self, game: "WotrGame"):
         """Update player-specific state."""
         # Update Free Peoples state

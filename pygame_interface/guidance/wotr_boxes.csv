@@ -1,0 +1,20 @@
+,x,y,x%,y%
+Board,1920,1324,,
+,,,,
+Fellowship_topleft,1644,24,0.8563,0.0181
+Fellowship_bottomright,1730,272,0.9010,0.2054
+,,,,
+guide_topleft,1747,24,0.9099,0.0181
+guide_bottomright,1900,272,0.9896,0.2054
+ ,,,,
+fp_card_character_topleft,17,30,0.0089,0.0227
+fp_card_character_bottomright,140,250,0.0729,0.1888
+,,,,
+fp_card_strategy_topleft,60,30,0.0313,0.0227
+fp_card_strategy_bottomright,287,250,0.1495,0.1888
+,,,,
+sp_card_character_topleft,1630,1073,0.8490,0.8104
+sp_card_character_bottomright,1758,1295,0.9156,0.9781
+,,,,
+sp_card_strategy_topleft,1777,1073,0.9255,0.8104
+sp_card_strategy_bottomright,1902,1295,0.9906,0.9781

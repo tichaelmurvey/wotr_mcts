@@ -17,10 +17,14 @@ from pygame_interface.config import (
     DEFAULT_BOARD_SCALE,
     UNIT_TOKEN_SIZE,
     UNIT_TOKEN_SMALL,
+    FELLOWSHIP_BOX_POS,
+    GUIDE_BOX_POS,
+    COMPANION_IMAGE_KEYS,
 )
 from pygame_interface.assets import get_asset_manager
 from game_env.regions_enum import R
 from game_env.army import FreeUnit, ShadowUnit
+from game_env.characters import CompanionName
 
 if TYPE_CHECKING:
     from pygame_interface.components.regions import RegionManager
@@ -77,6 +81,10 @@ class Board:
 
         # Control markers
         self.region_control: Dict[R, int] = {}  # R -> Player value
+
+        # Fellowship box data (companions in fellowship and guide)
+        self.fellowship_companions: List[CompanionName] = []
+        self.fellowship_guide: Optional[CompanionName] = None
 
         # Calculate initial zoom to fit board in rect
         self._fit_board_to_rect()
@@ -266,6 +274,21 @@ class Board:
         """Set the control marker for a region."""
         self.region_control[region] = player
 
+    def set_fellowship_box_data(
+        self,
+        companions: List[CompanionName],
+        guide: Optional[CompanionName],
+    ):
+        """
+        Set the fellowship box display data.
+
+        Args:
+            companions: List of companions in the fellowship (excluding guide)
+            guide: The current guide of the fellowship
+        """
+        self.fellowship_companions = companions
+        self.fellowship_guide = guide
+
     def update(self):
         """Update board state (called each frame)."""
         pass
@@ -309,8 +332,11 @@ class Board:
         # Draw units on regions
         self._draw_units(screen)
 
-        # Draw fellowship
+        # Draw fellowship marker on map
         self._draw_fellowship(screen)
+
+        # Draw fellowship boxes (guide and companions)
+        self._draw_fellowship_boxes(screen)
 
         # Draw hovered region name
         self._draw_hover_info(screen)
@@ -477,6 +503,62 @@ class Board:
             image,
             (screen_pos[0] - token_size // 2, screen_pos[1] - token_size // 2),
         )
+
+    def _draw_fellowship_boxes(self, screen: pygame.Surface):
+        """Draw companions and guide in the fellowship boxes on the board."""
+        if self.board_image is None:
+            return
+
+        board_w, board_h = self.board_image.get_size()
+
+        # Calculate token size based on zoom
+        base_token_size = int(UNIT_TOKEN_SIZE * min(self.zoom, 1.5))
+        if base_token_size < UNIT_TOKEN_SMALL:
+            base_token_size = UNIT_TOKEN_SMALL
+
+        # Draw guide in the guide box
+        if self.fellowship_guide is not None:
+            guide_x = int(board_w * (GUIDE_BOX_POS[0] + (GUIDE_BOX_POS[2] - GUIDE_BOX_POS[0]) / 2))
+            guide_y = int(board_h * (GUIDE_BOX_POS[1] + (GUIDE_BOX_POS[3] - GUIDE_BOX_POS[1]) / 2))
+            screen_pos = self.board_to_screen_pos((guide_x, guide_y))
+
+            image_key = COMPANION_IMAGE_KEYS.get(self.fellowship_guide)
+            if image_key:
+                image = self.assets.get_character_image(image_key, base_token_size)
+                img_w, img_h = image.get_size()
+                screen.blit(image, (screen_pos[0] - img_w // 2, screen_pos[1] - img_h // 2))
+
+        # Draw companions in the fellowship box
+        if self.fellowship_companions:
+            # Calculate box center and dimensions in board coordinates
+            box_x = int(board_w * FELLOWSHIP_BOX_POS[0])
+            box_y = int(board_h * FELLOWSHIP_BOX_POS[1])
+            box_w = int(board_w * (FELLOWSHIP_BOX_POS[2]-FELLOWSHIP_BOX_POS[0]))
+            box_h = int(board_h * (FELLOWSHIP_BOX_POS[3] - FELLOWSHIP_BOX_POS[1]))
+
+            # Arrange companions in a grid within the box
+            num_companions = len(self.fellowship_companions)
+            cols = min(3, num_companions)
+            rows = (num_companions + cols - 1) // cols
+
+            spacing_x = box_w // (cols + 1)
+            spacing_y = box_h // (rows + 1)
+
+            for idx, companion in enumerate(self.fellowship_companions):
+                row = idx // cols
+                col = idx % cols
+
+                # Position within the box
+                comp_x = box_x + spacing_x * (col + 1)
+                comp_y = box_y + spacing_y * (row + 1)
+
+                screen_pos = self.board_to_screen_pos((comp_x, comp_y))
+
+                image_key = COMPANION_IMAGE_KEYS.get(companion)
+                if image_key:
+                    image = self.assets.get_character_image(image_key, base_token_size)
+                    img_w, img_h = image.get_size()
+                    screen.blit(image, (screen_pos[0] - img_w // 2, screen_pos[1] - img_h // 2))
 
     def _draw_hover_info(self, screen: pygame.Surface):
         """Draw region name tooltip when hovering."""

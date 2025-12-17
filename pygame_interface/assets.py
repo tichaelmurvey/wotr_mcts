@@ -198,14 +198,14 @@ class AssetManager:
         size: int = UNIT_TOKEN_SIZE,
     ) -> pygame.Surface:
         """
-        Get the image for a character.
+        Get the image for a character, preserving original aspect ratio.
 
         Args:
             character_key: Character identifier (e.g., "gandalf_grey", "saruman")
-            size: Size to scale the image to (square)
+            size: Target height for the image (width scales proportionally)
 
         Returns:
-            Character image as pygame Surface
+            Character image as pygame Surface with preserved aspect ratio
         """
         filename = CHARACTER_IMAGES.get(character_key)
         if not filename:
@@ -215,7 +215,7 @@ class AssetManager:
             return surface
 
         path = UNITS_DIR / filename
-        return self._load_image(path, (size, size))
+        return self._load_image_preserve_aspect(path, size)
 
     def get_fellowship_marker(
         self,

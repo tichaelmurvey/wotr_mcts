@@ -17,7 +17,15 @@ class Fellowship:
     def __init__(self, action_triage: ActionRequirement, regions: Tuple[Region, ...]):
         self.action_triage = action_triage
         self.regions = regions
-        self.companions = copy(COMPANION_NAMES)
+        self.companions = (
+            C.STRIDER,
+            C.GANDALF_GREY,
+            C.BOROMIR,
+            C.LEGOLAS,
+            C.GIMLI,
+            C.MERRY,
+            C.PIPPIN
+        )
         self.track_position = 0
         self.region = regions[R.RIVENDELL]
         self.corruption = 0

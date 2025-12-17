@@ -135,7 +135,7 @@ UNIT_IMAGES = {
     ShadowUnit.nazgul: "Nazgul.png",
 }
 
-# Character images
+# Character images (by string key)
 CHARACTER_IMAGES = {
     "gandalf_grey": "Gandalfthegrey.png",
     "gandalf_white": "Gandalfthewhite.png",
@@ -152,9 +152,29 @@ CHARACTER_IMAGES = {
     "mouth": "Mouth.png",
 }
 
+# Mapping from CompanionName enum to image key
+from game_env.characters import CompanionName
+COMPANION_IMAGE_KEYS = {
+    CompanionName.GANDALF_GREY: "gandalf_grey",
+    CompanionName.GANDALF_WHITE: "gandalf_white",
+    CompanionName.STRIDER: "strider",
+    CompanionName.ARAGORN: "aragorn",
+    CompanionName.BOROMIR: "boromir",
+    CompanionName.LEGOLAS: "legolas",
+    CompanionName.GIMLI: "gimli",
+    CompanionName.MERRY: "merry",
+    CompanionName.PIPPIN: "pippin",
+}
+
 # Fellowship marker
 FELLOWSHIP_IMAGE = "Fellowship.png"
 FELLOWSHIP_REVEALED_IMAGE = "Fellowship_revealed.png"
+
+# Fellowship box positions on board (as percentage of board dimensions)
+# These are the blue boxes in the top center of the board, horizontally adjacent
+# Format: (x%, y%, x2%, y2%)
+FELLOWSHIP_BOX_POS = (0.8563, 0.0181, 0.9010, 0.2054)  # "The Fellowship of the Ring" box (left)
+GUIDE_BOX_POS = (0.9099, 0.0181, 0.9896, 0.2054)  # "The Guide of the Fellowship" box (right)
 
 
 # =============================================================================
