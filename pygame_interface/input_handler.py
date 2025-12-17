@@ -33,6 +33,7 @@ class InputHandler:
         # Drag state for board panning
         self.dragging = False
         self.drag_start: Optional[Tuple[int, int]] = None
+        self.drag_moved = False  # Track if drag actually moved (vs just a click)
 
         # Last mouse position for hover effects
         self.last_mouse_pos: Tuple[int, int] = (0, 0)
@@ -71,6 +72,16 @@ class InputHandler:
 
         # Left click
         if event.button == 1:
+            # Check if we should start panning (when zoomed in and on the board)
+            if self.interface.board.rect.collidepoint(pos):
+                board = self.interface.board
+                # Only enable drag-pan when zoomed in beyond the fit-to-window level
+                if board.zoom > board.min_zoom * 1.1:
+                    self.dragging = True
+                    self.drag_start = pos
+                    self.drag_moved = False  # Track if we actually moved
+                    board.start_pan(pos)
+                    return
             self._handle_left_click(pos)
 
     def _handle_left_click(self, pos: Tuple[int, int]):
@@ -177,6 +188,13 @@ class InputHandler:
             if self.dragging:
                 self.dragging = False
                 self.interface.board.end_pan()
+        elif event.button == 1:  # Left mouse button
+            if self.dragging:
+                self.dragging = False
+                self.interface.board.end_pan()
+                # If we didn't move much, treat it as a click
+                if hasattr(self, 'drag_moved') and not self.drag_moved:
+                    self._handle_left_click(event.pos)
 
     def _handle_mouse_motion(self, event: pygame.event.Event):
         """Handle mouse movement."""
@@ -185,6 +203,12 @@ class InputHandler:
 
         # Update panning if dragging
         if self.dragging:
+            # Check if we've moved enough to count as a drag
+            if self.drag_start:
+                dx = abs(pos[0] - self.drag_start[0])
+                dy = abs(pos[1] - self.drag_start[1])
+                if dx > 5 or dy > 5:
+                    self.drag_moved = True
             self.interface.board.update_pan(pos)
             return
 

@@ -112,20 +112,68 @@ class AssetManager:
         self._board_scale = scale
         return self._board_image
 
+    def _load_image_preserve_aspect(
+        self,
+        path: Path,
+        target_height: int,
+        alpha: bool = True,
+    ) -> pygame.Surface:
+        """
+        Load an image from disk, scaling to target height while preserving aspect ratio.
+
+        Args:
+            path: Path to the image file
+            target_height: Target height in pixels (width scales proportionally)
+            alpha: Whether to convert with alpha channel
+
+        Returns:
+            Loaded pygame Surface with preserved aspect ratio
+        """
+        cache_key = f"{path}_h{target_height}_{alpha}"
+
+        if cache_key in self._image_cache:
+            return self._image_cache[cache_key]
+
+        try:
+            image = pygame.image.load(str(path))
+            if alpha:
+                image = image.convert_alpha()
+            else:
+                image = image.convert()
+
+            # Calculate new width preserving aspect ratio
+            orig_width, orig_height = image.get_size()
+            if orig_height > 0:
+                aspect_ratio = orig_width / orig_height
+                new_width = int(target_height * aspect_ratio)
+                new_height = target_height
+                image = pygame.transform.smoothscale(image, (new_width, new_height))
+
+            self._image_cache[cache_key] = image
+            return image
+
+        except pygame.error as e:
+            print(f"Warning: Could not load image {path}: {e}")
+            # Return a placeholder surface
+            surface = pygame.Surface((target_height, target_height))
+            surface.fill((255, 0, 255))  # Magenta for missing textures
+            return surface
+
     def get_unit_image(
         self,
         unit: ArmyUnit,
         size: int = UNIT_TOKEN_SIZE,
     ) -> pygame.Surface:
         """
-        Get the image for a unit type.
+        Get the image for a unit type, preserving original aspect ratio.
+        Elite units are rendered 1.5x larger than regular units and leaders.
 
         Args:
             unit: The unit type
-            size: Size to scale the image to (square)
+            size: Base size for regular/leader units (elite units will be 1.5x this)
 
         Returns:
-            Unit image as pygame Surface
+            Unit image as pygame Surface with preserved aspect ratio
         """
         filename = UNIT_IMAGES.get(unit)
         if not filename:
@@ -134,8 +182,15 @@ class AssetManager:
             surface.fill((255, 0, 255))
             return surface
 
+        # Determine if this is an elite unit (1.5x size)
+        unit_name = unit.name if hasattr(unit, 'name') else str(unit)
+        is_elite = '_elt' in unit_name
+
+        # Calculate target height (elite units are 1.5x bigger)
+        target_height = int(size * 1.5) if is_elite else size
+
         path = UNITS_DIR / filename
-        return self._load_image(path, (size, size))
+        return self._load_image_preserve_aspect(path, target_height)
 
     def get_character_image(
         self,

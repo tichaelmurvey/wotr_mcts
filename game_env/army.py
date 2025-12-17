@@ -82,17 +82,16 @@ SHADOW_KEYS = {
 }
 
 
-def get_unit_group_player(units: UnitGroup):
+def get_unit_group_player(units: GenericUnitGroup):
     x = {x.name for x in units.keys()}
     return P.SHADOW if x & SHADOW_KEYS else P.FREE
 
-
 class Army:
-    units: Counter[ShadowUnit] | Counter[FreeUnit]
+    units: GenericUnitGroup
 
     def __init__(
         self,
-        units: Counter[ShadowUnit] | Counter[FreeUnit],
+        units: GenericUnitGroup,
         minions: set[MinionName] | None = None,
         companions: set[CompanionName] | None = None,
         nazgul: int = 0,

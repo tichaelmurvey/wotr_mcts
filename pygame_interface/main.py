@@ -5,6 +5,7 @@ Main entry point for the War of the Ring pygame interface.
 import sys
 import pygame
 
+from game_env.game_env import WotrGame
 from pygame_interface.config import (
     WINDOW_TITLE,
     DEFAULT_WINDOW_WIDTH,
@@ -69,15 +70,12 @@ def main():
     sys.exit()
 
 
-def run_with_game(game):
+def run_with_game(game: WotrGame):
     """
     Run the interface with an actual game instance.
 
     Args:
         game: WotrGame instance to connect to
-
-    Returns:
-        The interface instance for further interaction
     """
     pygame.init()
     pygame.font.init()
@@ -91,11 +89,13 @@ def run_with_game(game):
     init_assets()
 
     interface = WotrInterface(screen, game, debug=True)
-    #return interface
 
     # Main loop
     clock = pygame.time.Clock()
     running = True
+
+    # Start game
+    game.start_game(verbose=True)
 
     while running:
         # Handle events
@@ -111,7 +111,21 @@ def run_with_game(game):
             else:
                 interface.handle_event(event)
 
-        # Update
+        # Update game state display
+        interface.update_game_state(game)
+
+        # Check if game needs player input
+        if hasattr(game, 'current_action_space') and game.current_action_space:
+            # Get player move through the interface
+            move = interface.get_player_move(game.current_action_space)
+            if move is None:
+                # Player closed the window during move selection
+                running = False
+            else:
+                # Apply the move and progress the game
+                game.implement_player_action(move)
+
+        # Update interface
         interface.update()
 
         # Draw

@@ -369,10 +369,11 @@ def get_board_image_path(scale: int = DEFAULT_BOARD_SCALE, variant: str = "") ->
     Returns:
         Path to the board image file
     """
-    if scale == 100:
-        filename = f"board{variant}.jpg" if variant else "board.jpg"
-    else:
-        filename = f"board{scale}{variant}.jpg"
+    filename = "map_en.jpg"
+    # if scale == 100:
+    #     filename = f"board{variant}.jpg" if variant else "board.jpg"
+    # else:
+    #     filename = f"board{scale}{variant}.jpg"
     return IMAGES_DIR / filename
 
 

@@ -1,10 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Callable, NamedTuple
+from typing import TYPE_CHECKING, Callable, NamedTuple
 
-
-from game_env.game_env_enums import TABLE_CARD_TRIGGER, Player
+if TYPE_CHECKING:
+    from game_env.battle.battle import Battle
+    from game_env.game_env import WotrGame
+    from game_env.game_env_enums import TABLE_CARD_TRIGGER, Player
 HAND_LIMIT = 6
 
 
@@ -28,9 +30,10 @@ CB = DeckType
 class CombatEffect(NamedTuple):
     title: str
     description: str
-    effect_method: Callable
+    effect_method: Callable[[Battle]]
     priority: int
-
+    condition_text: str | None = None
+    condition_checker: Callable[[Battle], bool] | None = None
 
 CE = CombatEffect
 
@@ -47,7 +50,7 @@ class EventCard:
     combat_effect: CombatEffect
     table_trigger: TABLE_CARD_TRIGGER | None = None
     condition_text: str | None = None
-    condition_checker: Callable | None = None
+    condition_checker: Callable[[WotrGame], bool] | None = None
 
 
 EC = EventCard

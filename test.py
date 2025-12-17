@@ -1,6 +1,4 @@
 
-from __future__ import annotations
-from game_env.game_env import WotrGame
-from pygame_interface.main import run_with_game
-game = WotrGame(verbose=True)
-run_with_game(game)
+some = (1,2,3)
+others = (3,4,5)
+print(3 in others)

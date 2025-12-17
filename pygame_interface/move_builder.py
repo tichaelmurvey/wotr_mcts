@@ -302,4 +302,4 @@ class MoveBuilder:
         elif self.action_space:
             return f"{len(self.action_space.action_set)} actions available"
         else:
-            return "Waiting for game..."
+            return "Waiting for move..."

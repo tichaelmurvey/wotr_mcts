@@ -15,6 +15,7 @@ from pygame_interface.config import (
     InteractionState,
     FPS,
 )
+from game_env.moves.move_types import MoveType
 from pygame_interface.assets import get_asset_manager
 from pygame_interface.components.board import Board
 from pygame_interface.components.regions import RegionManager
@@ -285,6 +286,10 @@ class WotrInterface:
         # Set interaction state based on action space
         self.interaction_state = InteractionState.SELECTING_SOURCE
 
+        # Update sidebar with awaited move description
+        awaited_description = self._get_awaited_move_description(action_space)
+        self.sidebar.set_awaited_move(awaited_description)
+
         # Block until move is made
         clock = pygame.time.Clock()
         while self.pending_move is None:
@@ -311,6 +316,7 @@ class WotrInterface:
         self.current_action_space = None
         self.interaction_state = InteractionState.IDLE
         self.move_builder.reset()
+        self.sidebar.set_awaited_move(None)
 
         return self.pending_move
 
@@ -378,3 +384,48 @@ class WotrInterface:
         """Clear all region highlights."""
         self.board.clear_highlights()
         self.valid_destinations = set()
+
+    def _get_move_type_description(self, move_type: MoveType) -> str:
+        """Get a human-readable description for a move type."""
+        descriptions = {
+            MoveType.EVENT_CARD_DISCARD: "Card Discard",
+            MoveType.RESOLVE_ACTION_DIE: "Action Die",
+            MoveType.CHOOSE_COMBAT_CARD: "Combat Card",
+            MoveType.CHANGE_GUIDE: "Guide Change",
+            MoveType.RESOLVE_HUNT_DAMAGE: "Hunt Damage",
+            MoveType.DECLARE_FELLOWSHIP: "Fellowship Declaration",
+            MoveType.REVEAL_FELLOWSHIP: "Fellowship Reveal",
+            MoveType.USE_HUNT_TABLE_CARD: "Hunt Card",
+            MoveType.USE_GUIDE_HUNT_ABILITY: "Guide Ability",
+            MoveType.SHADOWS_GATHER: "Shadows Gather",
+        }
+        return descriptions.get(move_type, move_type.name.replace("_", " ").title())
+
+    def _get_awaited_move_description(self, action_space: "ActionSpace") -> str:
+        """Get a description of what move is being awaited from an action space."""
+        if not action_space or not action_space.action_set:
+            return "Input"
+
+        # Collect all move types from the action space
+        move_types = set()
+        for action_choice in action_space.action_set:
+            if action_choice:
+                for move in action_choice:
+                    move_types.add(move.move_type)
+
+        if len(move_types) == 1:
+            return self._get_move_type_description(list(move_types)[0])
+        elif len(move_types) > 1:
+            # Return the most relevant/common one
+            for priority_type in [
+                MoveType.RESOLVE_ACTION_DIE,
+                MoveType.EVENT_CARD_DISCARD,
+                MoveType.DECLARE_FELLOWSHIP,
+                MoveType.CHANGE_GUIDE,
+                MoveType.CHOOSE_COMBAT_CARD,
+            ]:
+                if priority_type in move_types:
+                    return self._get_move_type_description(priority_type)
+            return f"{len(move_types)} move types"
+
+        return "Input"

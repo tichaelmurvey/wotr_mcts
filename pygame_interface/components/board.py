@@ -413,10 +413,10 @@ class Board:
         units: Counter,
     ):
         """Draw a stack of unit tokens at a position."""
-        # Determine token size based on zoom
-        token_size = int(UNIT_TOKEN_SIZE * min(self.zoom, 1.5))
-        if token_size < UNIT_TOKEN_SMALL:
-            token_size = UNIT_TOKEN_SMALL
+        # Determine base token size based on zoom
+        base_token_size = int(UNIT_TOKEN_SIZE * min(self.zoom, 1.5))
+        if base_token_size < UNIT_TOKEN_SMALL:
+            base_token_size = UNIT_TOKEN_SMALL
 
         # Count total units for layout
         total_units = sum(units.values())
@@ -425,7 +425,8 @@ class Board:
 
         # Calculate layout - arrange in a grid pattern
         cols = min(3, total_units)
-        spacing = token_size // 2
+        # Use base size for spacing (elite units will overlap slightly, which looks fine)
+        spacing = int(base_token_size * 0.7)
 
         x_start = pos[0] - (cols * spacing) // 2
         y_start = pos[1] - spacing // 2
@@ -439,9 +440,12 @@ class Board:
                 x = x_start + col * spacing
                 y = y_start + row * spacing
 
-                # Get unit image
-                image = self.assets.get_unit_image(unit_type, token_size)
-                screen.blit(image, (x - token_size // 2, y - token_size // 2))
+                # Get unit image (now preserves aspect ratio and handles elite sizing)
+                image = self.assets.get_unit_image(unit_type, base_token_size)
+                img_width, img_height = image.get_size()
+
+                # Center the image at the grid position
+                screen.blit(image, (x - img_width // 2, y - img_height // 2))
 
                 idx += 1
 

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from game_env.action_signal_types import S
     from game_env.regions.region import R, Region
 
-from game_env.characters import M
+from game_env.characters import C, M
 from game_env.action_dice.dice import ActionDieFree, ActionDieShadow
 from game_env.action_dice.dice_pool import DicePool
 from game_env.event_cards.card_data import (
@@ -43,6 +43,7 @@ class WotrGame:
     table_cards: List[EC]
     active_hunt: Hunt | None
     minion_pos: dict[M, R | None]
+    companion_pos: dict[C, R | None]
     phase: GAME_PHASE
     turn: int
     regions: Tuple[Region, ...]
@@ -77,7 +78,7 @@ class WotrGame:
 
         self.minion_pos = {M.SARUMAN: None, M.MOUTH: None, M.WITCH_KING: None}
 
-    def start_game(self, verbose: bool):
+    def start_game(self, verbose: bool=False):
         self.verbose = verbose
         if verbose: print("starting game")
         self.reset()

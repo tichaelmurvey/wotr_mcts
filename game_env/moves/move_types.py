@@ -27,6 +27,7 @@ class MoveType(IntEnum):
     REVEAL_FELLOWSHIP = 6
     USE_HUNT_TABLE_CARD = 7
     USE_GUIDE_HUNT_ABILITY = 8
+    SHADOWS_GATHER = 9
 
 
 MT = MoveType

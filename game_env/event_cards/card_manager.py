@@ -14,6 +14,7 @@ from game_env.event_cards.cards import HAND_LIMIT, DeckType
 class Deck:
     def __init__(self, cards: List[EventCard]):
         self.cards = cards
+        print("initiated deck with cards", len(self.cards))
         random.shuffle(self.cards)
 
     def draw_card(self):
@@ -52,7 +53,7 @@ class EventCardManager:
             self.draw_card(DeckType.CHARACTER)
 
         for _ in range(n_strat):
-            self.draw_card(DeckType.CHARACTER)
+            self.draw_card(DeckType.STRATEGY)
 
         if len(self.hand) > HAND_LIMIT:
             self.action_requirement.append(S(MT.EVENT_CARD_DISCARD, self.player))

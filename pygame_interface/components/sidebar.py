@@ -75,6 +75,9 @@ class Sidebar:
         # Scroll offset for content
         self.scroll_offset = 0
 
+        # Current awaited move info
+        self.awaited_move: Optional[str] = None
+
     def set_rect(self, rect: pygame.Rect):
         """Update the display rectangle."""
         self.rect = rect
@@ -133,6 +136,10 @@ class Sidebar:
         self.free_vp = free_vp
         self.shadow_vp = shadow_vp
 
+    def set_awaited_move(self, move_description: Optional[str]):
+        """Set the description of the move currently being awaited."""
+        self.awaited_move = move_description
+
     def update(self):
         """Update sidebar state."""
         pass
@@ -185,6 +192,7 @@ class Sidebar:
         """Draw the turn and phase information."""
         font_large = self.assets.get_font(FONT_SIZE_LARGE)
         font_medium = self.assets.get_font(FONT_SIZE_MEDIUM)
+        font_small = self.assets.get_font(FONT_SIZE_SMALL)
 
         # Turn number
         turn_text = font_large.render(f"Turn {self.turn}", True, Colors.TEXT_PRIMARY)
@@ -194,7 +202,17 @@ class Sidebar:
         # Phase
         phase_text = font_medium.render(self.phase, True, Colors.TEXT_SECONDARY)
         screen.blit(phase_text, (self.rect.x + padding, y))
-        y += phase_text.get_height()
+        y += phase_text.get_height() + 3
+
+        # Awaited move (if any)
+        if self.awaited_move:
+            awaited_text = font_small.render(
+                f"Awaiting: {self.awaited_move}",
+                True,
+                Colors.TEXT_MUTED,
+            )
+            screen.blit(awaited_text, (self.rect.x + padding, y))
+            y += awaited_text.get_height()
 
         return y
 
