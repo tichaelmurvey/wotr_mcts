@@ -32,7 +32,7 @@ from game_env.game_env_enums import (
 )
 from game_env.hunt.hunt import Hunt, HuntBox
 from game_env.hunt.hunt_pool import HuntPool
-from game_env.moves.action_generator import MovesGenerator
+from game_env.moves.action_generator import ACTION_OPTION_OBSERVERS, ACTION_RESOLVERS, MovesGenerator
 from game_env.moves.move_types import MT, ActionChoice, ActionSpace
 from game_env.regions.regions_data import regions_init
 from game_env.regions.starting_positions import STARTING_POSITIONS
@@ -47,6 +47,7 @@ class WotrGame:
     phase: GAME_PHASE
     turn: int
     regions: Tuple[Region, ...]
+    active_die_player : P
     verbose: bool
 
     def __init__(self, verbose: bool = False):
@@ -73,6 +74,7 @@ class WotrGame:
 
         self.phase = GP.DRAW_CARDS
         self.turn = 0
+        self.active_die_player = P.FREE
 
         self.reset_armies()
 
@@ -93,10 +95,12 @@ class WotrGame:
     def update_phase(self):
         self.phase = GAME_PHASE(self.phase + 1 if self.phase < 6 else 1)
 
-    def implement_player_action(self, action_choice: ActionChoice):
+    def execute_player_action(self, action_choice: ActionChoice):
         # do move(s)
         for move in action_choice:
-            pass
+            ACTION_RESOLVERS[move.move_type](self, move.move_target)
+        if len(self.action_triage) == 0:
+            self.update_phase()
         self.progress_game()
 
     def offer_move(self):
@@ -153,10 +157,17 @@ class WotrGame:
             player.card_manager.draw_cards_move(1, 1)
 
     def hunt_allocation(self):
-        pass
+        self.action_triage.append(S(MT.HUNT_ALLOCATION, move_data=self, action_player=P.SHADOW))
 
     def action_roll(self):
-        pass
+        for player in self.player_states:
+            player.dice_pool.action_roll()
+        
+        shadow_pool = self.player_state_shadow.dice_pool.action_dice
+        free_pool = self.player_state_free.dice_pool.action_dice
+        for i in range (len(shadow_pool) + len(free_pool) - self.hunt_box.eyes):
+            self.action_triage.append(S(MT.RESOLVE_ACTION_DIE, move_data=self))
+
 
     def action_resolution(self):
         pass

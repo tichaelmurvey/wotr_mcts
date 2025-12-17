@@ -21,22 +21,45 @@ class ActionOperator:
     define_options: OptionsFn
     execute_action: ExecuteFn
 
-from game_env.moves.card_moves import discard_operator
-from game_env.moves.fellowship_moves import change_guide_operator, declare_operator
-ACTION_OPERATORS: dict[MT, ActionOperator] = {
-    MT.EVENT_CARD_DISCARD: discard_operator,
-    MT.CHANGE_GUIDE: change_guide_operator,
-    MT.DECLARE_FELLOWSHIP: declare_operator,
+from game_env.moves import card_moves
+from game_env.moves import fellowship_moves
+
+ACTION_OPTION_OBSERVERS: dict[MT, OptionsFn] = {
+    MT.EVENT_CARD_DISCARD: card_moves.define_options,
+    MT.CHANGE_GUIDE: fellowship_moves.define_options_guide,
+    MT.DECLARE_FELLOWSHIP: fellowship_moves.define_options_declare,
+    MT.HUNT_ALLOCATION: fellowship_moves.define_options_hunt_allocation
 }
 
+ACTION_RESOLVERS : dict[MT, ExecuteFn] = {
+    MT.EVENT_CARD_DISCARD : card_moves.execute_action,
+    MT.CHANGE_GUIDE: fellowship_moves.execute_action_guide,
+    MT.DECLARE_FELLOWSHIP: fellowship_moves.execute_action_declare,
+    MT.HUNT_ALLOCATION: fellowship_moves.execute_action_hunt_allocation
+}
 
+"""
+==== Action management heirarchy summary ====
+
+A "Move" is one player-initiated change to the game state.
+
+An "Action" is a set of 1 or more moves, between which there is no random event or opponent action (e.g. discard 2 cards)
+
+When the game state progresses to a point which requires a player action, this action requirement is logged in action_triage.
+For example, there may be a triaged action for each action die during the action phase.
+
+Each triaged action is resolved by the movesgenerator into possible moves or movesets. 
+Then, moveset options are provided to the player in the form of an ActionSpace. 
+The player chooses an action and returns it through implement_player_action.
+The env then executes each move in the action by indexing the move type to move execution functions.
+"""
 class MovesGenerator:
     @staticmethod
     def generate_moves(action_signal: ActionSignal):
-        if not action_signal.action_type in ACTION_OPERATORS:
+        if not action_signal.action_type in ACTION_OPTION_OBSERVERS:
             raise Exception("No action operator for move", action_signal.action_type.name)
         moves, num_moves = MovesGenerator._aggregate_options(                
-            ACTION_OPERATORS[action_signal.action_type].define_options(
+            ACTION_OPTION_OBSERVERS[action_signal.action_type](
                 action_signal.move_data
             )
         )
@@ -51,14 +74,3 @@ class MovesGenerator:
             return flat_options, 1
         else:
             return tuple((action,) for action in option_set.options), option_set.num
-
-
-class ActionResolver:
-    def __init__(self, game_env: WotrGame):
-        self.game_env = game_env
-
-    def resolve_action(self, action_choice: ActionChoice):
-        for action in action_choice:
-            ACTION_OPERATORS[action.move_type].execute_action(
-                self.game_env, action.move_target
-            )

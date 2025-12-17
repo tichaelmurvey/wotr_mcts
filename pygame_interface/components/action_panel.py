@@ -18,7 +18,7 @@ from pygame_interface.config import (
 from pygame_interface.assets import get_asset_manager
 
 if TYPE_CHECKING:
-    from game_env.moves.move_types import ActionSpace, MoveOption
+    from game_env.moves.move_types import ActionChoice, ActionSpace, MoveOption
 
 
 class Button:
@@ -96,13 +96,21 @@ class ActionPanel:
         # Message to display
         self.message: str = "Waiting for game..."
 
-        # Buttons
+        # Default control buttons (Cancel, Pass, End Turn)
         self.buttons: List[Button] = []
+
+        # Move option buttons (dynamically created)
+        self.move_buttons: List[Button] = []
+
+        # Scroll offset for move buttons (when there are many)
+        self.scroll_offset: int = 0
+        self.max_visible_buttons: int = 8
 
         # Callbacks
         self.on_pass: Optional[Callable] = None
         self.on_cancel: Optional[Callable] = None
         self.on_end_turn: Optional[Callable] = None
+        self.on_move_selected: Optional[Callable[["ActionChoice"], None]] = None
 
         self._create_default_buttons()
 
@@ -172,6 +180,7 @@ class ActionPanel:
             action_space: The ActionSpace from the game engine
         """
         self.action_space = action_space
+        self.scroll_offset = 0
 
         if action_space:
             # Extract move descriptions
@@ -183,9 +192,101 @@ class ActionPanel:
 
             # Enable cancel button
             self.buttons[0].enabled = True
+
+            # Create move option buttons
+            self._create_move_buttons(action_space)
         else:
             self.available_moves = []
             self.buttons[0].enabled = False
+            self.move_buttons = []
+
+    def _create_move_buttons(self, action_space: "ActionSpace"):
+        """Create buttons for each move option in the action space."""
+        self.move_buttons = []
+
+        for idx, action_choice in enumerate(action_space.action_set):
+            if not action_choice:
+                continue
+
+            # Create a label for this action choice
+            label = self._get_action_choice_label(action_choice, idx)
+
+            # Create a callback that captures this action_choice
+            def make_callback(ac: "ActionChoice"):
+                def callback():
+                    if self.on_move_selected:
+                        self.on_move_selected(ac)
+                return callback
+
+            button = Button(
+                pygame.Rect(0, 0, 120, BUTTON_HEIGHT - 4),
+                label,
+                make_callback(action_choice),
+                enabled=True,
+                color=Colors.PANEL_BORDER,
+            )
+            self.move_buttons.append(button)
+
+        self._reposition_move_buttons()
+
+    def _get_action_choice_label(self, action_choice: "ActionChoice", index: int) -> str:
+        """Generate a short label for an action choice."""
+        if not action_choice:
+            return f"Option {index + 1}"
+
+        # Get the first move option for the label
+        first_move = action_choice[0]
+        move_type = first_move.move_type
+        target = first_move.move_target
+
+        # Create a short readable label
+        from game_env.moves.move_types import MoveType
+        from game_env.regions_enum import R
+        from game_env.characters import CompanionName
+
+        # Type-specific formatting
+        if target is None:
+            return move_type.name.replace("_", " ").title()[:15]
+        elif isinstance(target, R):
+            return f"{target.name[:12]}"
+        elif isinstance(target, CompanionName):
+            return f"{target.name[:12]}"
+        elif hasattr(target, 'idx'):
+            # CardReference
+            return f"Card {target.idx}"
+        else:
+            return f"#{index + 1}: {move_type.name[:10]}"
+
+    def _reposition_move_buttons(self):
+        """Position the move option buttons in the panel."""
+        if not self.move_buttons:
+            return
+
+        # Position buttons in a row, starting from left side
+        x = self.rect.x + BUTTON_PADDING
+        y = self.rect.y + 5
+
+        # Calculate how many buttons we can show
+        visible_buttons = self.move_buttons[
+            self.scroll_offset : self.scroll_offset + self.max_visible_buttons
+        ]
+
+        for button in visible_buttons:
+            button.rect.x = x
+            button.rect.y = y
+            x += button.rect.width + 4
+
+    def handle_scroll(self, direction: int):
+        """Handle scrolling through move buttons."""
+        if len(self.move_buttons) <= self.max_visible_buttons:
+            return
+
+        self.scroll_offset += direction
+        self.scroll_offset = max(0, min(
+            self.scroll_offset,
+            len(self.move_buttons) - self.max_visible_buttons
+        ))
+        self._reposition_move_buttons()
 
     def set_message(self, message: str):
         """Set the message to display."""
@@ -216,29 +317,59 @@ class ActionPanel:
         font_medium = self.assets.get_font(FONT_SIZE_MEDIUM)
         font_small = self.assets.get_font(FONT_SIZE_SMALL)
 
-        # Draw message
-        message_text = font_medium.render(self.message, True, Colors.TEXT_PRIMARY)
-        screen.blit(
-            message_text,
-            (self.rect.x + BUTTON_PADDING, self.rect.y + 10),
-        )
+        # Draw move option buttons if present
+        if self.move_buttons:
+            visible_buttons = self.move_buttons[
+                self.scroll_offset : self.scroll_offset + self.max_visible_buttons
+            ]
+            for button in visible_buttons:
+                button.draw(screen, font_small)
 
-        # Draw available moves summary
-        if self.available_moves:
-            moves_text = ", ".join(self.available_moves[:3])
-            if len(self.available_moves) > 3:
-                moves_text += f" (+{len(self.available_moves) - 3} more)"
-            moves_surface = font_small.render(
-                f"Available: {moves_text}",
+            # Draw scroll indicators if needed
+            if len(self.move_buttons) > self.max_visible_buttons:
+                if self.scroll_offset > 0:
+                    # Left arrow indicator
+                    arrow_left = font_small.render("<", True, Colors.TEXT_PRIMARY)
+                    screen.blit(arrow_left, (self.rect.x + 2, self.rect.y + 8))
+                if self.scroll_offset < len(self.move_buttons) - self.max_visible_buttons:
+                    # Right arrow indicator
+                    arrow_right = font_small.render(">", True, Colors.TEXT_PRIMARY)
+                    # Position after the last visible button
+                    if visible_buttons:
+                        last_btn = visible_buttons[-1]
+                        screen.blit(arrow_right, (last_btn.rect.right + 4, self.rect.y + 8))
+
+            # Show count
+            count_text = font_small.render(
+                f"({len(self.move_buttons)} options)",
                 True,
-                Colors.TEXT_SECONDARY,
+                Colors.TEXT_MUTED,
             )
+            screen.blit(count_text, (self.rect.x + BUTTON_PADDING, self.rect.y + 35))
+        else:
+            # Draw message when no move buttons
+            message_text = font_medium.render(self.message, True, Colors.TEXT_PRIMARY)
             screen.blit(
-                moves_surface,
-                (self.rect.x + BUTTON_PADDING, self.rect.y + 35),
+                message_text,
+                (self.rect.x + BUTTON_PADDING, self.rect.y + 10),
             )
 
-        # Draw buttons
+            # Draw available moves summary
+            if self.available_moves:
+                moves_text = ", ".join(self.available_moves[:3])
+                if len(self.available_moves) > 3:
+                    moves_text += f" (+{len(self.available_moves) - 3} more)"
+                moves_surface = font_small.render(
+                    f"Available: {moves_text}",
+                    True,
+                    Colors.TEXT_SECONDARY,
+                )
+                screen.blit(
+                    moves_surface,
+                    (self.rect.x + BUTTON_PADDING, self.rect.y + 35),
+                )
+
+        # Draw default control buttons
         for button in self.buttons:
             button.draw(screen, font_small)
 
@@ -252,6 +383,16 @@ class ActionPanel:
         Returns:
             True if a button was clicked
         """
+        # Check move option buttons first
+        if self.move_buttons:
+            visible_buttons = self.move_buttons[
+                self.scroll_offset : self.scroll_offset + self.max_visible_buttons
+            ]
+            for button in visible_buttons:
+                if button.handle_click(pos):
+                    return True
+
+        # Check default control buttons
         for button in self.buttons:
             if button.handle_click(pos):
                 return True
@@ -259,5 +400,14 @@ class ActionPanel:
 
     def handle_mouse_motion(self, pos: Tuple[int, int]):
         """Handle mouse motion for hover effects."""
+        # Handle move option buttons
+        if self.move_buttons:
+            visible_buttons = self.move_buttons[
+                self.scroll_offset : self.scroll_offset + self.max_visible_buttons
+            ]
+            for button in visible_buttons:
+                button.handle_motion(pos)
+
+        # Handle default control buttons
         for button in self.buttons:
             button.handle_motion(pos)

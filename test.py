@@ -1,4 +1,2 @@
-
-some = (1,2,3)
-others = (3,4,5)
-print(3 in others)
+for i in range(3, 10):
+    print(i)

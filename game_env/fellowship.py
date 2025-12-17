@@ -14,9 +14,13 @@ from game_env.regions_enum import R
 class Fellowship:
     region : Region
     companions : Tuple[CompanionName, ...]
+    moved_last_turn: bool
+    moved_this_turn : bool
     def __init__(self, action_triage: ActionRequirement, regions: Tuple[Region, ...]):
         self.action_triage = action_triage
         self.regions = regions
+        self.moved_last_turn = False
+        self.moved_this_turn = False
         self.companions = (
             C.STRIDER,
             C.GANDALF_GREY,
@@ -35,7 +39,7 @@ class Fellowship:
         self.mordor_step = None
 
     def move(self):
-        pass
+        self.moved_this_turn = True
 
     def reveal(self):
         pass
@@ -45,7 +49,7 @@ class Fellowship:
         self.region = self.regions[region]
         region_obj = self.regions[region]
         if region_obj.features and RF.STRONGHOLD in region_obj.features and region_obj.control==P.FREE and not region_obj.occupied:
-            self.corruption = min(0, self.corruption-1)
+            self.corruption = max(0, self.corruption-1)
 
     def change_guide(self, new_guide: CompanionName):
         self.guide = new_guide
@@ -54,6 +58,9 @@ class Fellowship:
         pass
 
     def fellowship_phase(self):
+        self.moved_last_turn = self.moved_this_turn
+        self.moved_this_turn = False
+
         if not self.revealed and not self.in_mordor:
             self.action_triage.append(ActionSignal(MT.DECLARE_FELLOWSHIP, P.FREE, self))
         self.action_triage.append(ActionSignal(MT.CHANGE_GUIDE, P.FREE, self))

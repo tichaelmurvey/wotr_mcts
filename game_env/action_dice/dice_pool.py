@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from game_env.action_dice.dice import ActionDie
+from game_env.action_dice.dice import ActionDie, ActionResult
 
 
 DiceSet = Tuple[ActionDie, ...]
@@ -12,8 +12,10 @@ class DicePool:
     def __init__(self, Die: type[ActionDie], n: int = 0):
         self.action_dice = tuple(Die() for _ in range(n))
 
-    def roll_dice(self):
+    def action_roll(self):
         for die in self.action_dice:
+            if die.action_used:
+                continue
             die.roll()
 
     def get_dice_results(self):

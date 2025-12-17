@@ -123,7 +123,7 @@ def run_with_game(game: WotrGame):
                 running = False
             else:
                 # Apply the move and progress the game
-                game.implement_player_action(move)
+                game.execute_player_action(move)
 
         # Update interface
         interface.update()

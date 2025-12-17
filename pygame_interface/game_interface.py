@@ -99,6 +99,10 @@ class WotrInterface:
         # State rendering
         self.state_renderer = StateRenderer(self)
 
+        # Set up action panel callbacks
+        self.action_panel.on_move_selected = self._on_move_selected
+        self.action_panel.on_cancel = self.cancel_selection
+
         # Interaction state
         self.interaction_state = InteractionState.IDLE
         self.current_action_space: Optional["ActionSpace"] = None
@@ -328,6 +332,15 @@ class WotrInterface:
             move: The ActionChoice to submit
         """
         self.pending_move = move
+
+    def _on_move_selected(self, move: "ActionChoice"):
+        """
+        Handle move selection from action panel buttons.
+
+        Args:
+            move: The ActionChoice that was selected
+        """
+        self.submit_move(move)
 
     def cancel_selection(self):
         """Cancel the current selection and reset interaction state."""

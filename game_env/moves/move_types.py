@@ -28,6 +28,30 @@ class MoveType(IntEnum):
     USE_HUNT_TABLE_CARD = 7
     USE_GUIDE_HUNT_ABILITY = 8
     SHADOWS_GATHER = 9
+    HUNT_ALLOCATION = 10
+
+    #Dice resolutions
+    MOVE_ARMY = 11
+    MOVE_COMPANIONS = 12
+    MOVE_MINIONS = 13
+    MUSTER = 14
+    ATTACK = 15
+    PLAY_CARD = 16
+    DRAW_CARD = 17
+    MOVE_FELLOWSHIP = 18
+    HIDE_FELLOWSHIP = 19
+    SEPARATE_COMPANIONS = 20
+    ADVANCE_NATION_POLITICS = 21
+    RECRUIT_MINION = 22
+    RECRUIT_DICE_COMPANION = 23
+    PASS = 24
+    
+    #special dice actions
+    CONVERT_TO_EYE=25
+    CONVERT_TO_WOTW=26
+    KILL_WOTW=27
+    USE_RING_FP=28
+    USE_RING_SP=29
 
 
 MT = MoveType
@@ -39,7 +63,7 @@ class CardReference:
     deck: DeckType
     idx: int
 
-type MoveTarget = None | CardReference | R | CompanionName
+type MoveTarget = None | CardReference | R | CompanionName | int
 
 
 @dataclass

@@ -17,8 +17,8 @@ from game_env.moves.action_generator import MT
 
 @dataclass
 class HuntBox:
-    fp_dice = 0
-    eyes = 0
+    fp_dice : int = 0
+    eyes : int = 0
 
 
 class HuntPhase(IntEnum):
