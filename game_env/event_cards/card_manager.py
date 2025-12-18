@@ -1,15 +1,17 @@
 from __future__ import annotations
 import random
 from typing import TYPE_CHECKING, List, NamedTuple
+
 if TYPE_CHECKING:
     from game_env.action_signal_types import ActionRequirement
     from game_env.moves.move_types import CardReference
     from game_env.event_cards.cards import EventCard
 from game_env.action_signal_types import S
 from game_env.game_env_enums import P
-from game_env.moves.action_generator import MT
+from game_env.moves.move_types import MT
 
 from game_env.event_cards.cards import HAND_LIMIT, DeckType
+
 
 class Deck:
     def __init__(self, cards: List[EventCard]):

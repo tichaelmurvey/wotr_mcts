@@ -1,21 +1,20 @@
 from __future__ import annotations
-from copy import copy
 from typing import Tuple
 from game_env.characters import C, CompanionName
 from game_env.action_signal_types import ActionSignal
 from game_env.action_signal_types import ActionRequirement
-from game_env.characters import COMPANION_NAMES
 from game_env.game_env_enums import P
-from game_env.moves.action_generator import MT
+from game_env.moves.move_types import MT
 from game_env.regions.region import RF, Region
 from game_env.regions_enum import R
 
 
 class Fellowship:
-    region : Region
-    companions : Tuple[CompanionName, ...]
+    region: Region
+    companions: Tuple[CompanionName, ...]
     moved_last_turn: bool
-    moved_this_turn : bool
+    moved_this_turn: bool
+
     def __init__(self, action_triage: ActionRequirement, regions: Tuple[Region, ...]):
         self.action_triage = action_triage
         self.regions = regions
@@ -28,7 +27,7 @@ class Fellowship:
             C.LEGOLAS,
             C.GIMLI,
             C.MERRY,
-            C.PIPPIN
+            C.PIPPIN,
         )
         self.track_position = 0
         self.region = regions[R.RIVENDELL]
@@ -48,8 +47,16 @@ class Fellowship:
         self.track_position = 0
         self.region = self.regions[region]
         region_obj = self.regions[region]
-        if region_obj.features and RF.STRONGHOLD in region_obj.features and region_obj.control==P.FREE and not region_obj.occupied:
-            self.corruption = max(0, self.corruption-1)
+        if (
+            region_obj.features
+            and (
+                (RF.STRONGHOLD in region_obj.features)
+                or (RF.CITY in region_obj.features)
+            )
+            and region_obj.control == P.FREE
+            and region_obj.orig_loyalty == P.FREE
+        ):
+            self.corruption = max(0, self.corruption - 1)
 
     def change_guide(self, new_guide: CompanionName):
         self.guide = new_guide

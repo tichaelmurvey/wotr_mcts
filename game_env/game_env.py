@@ -1,6 +1,12 @@
 from __future__ import annotations
 from copy import deepcopy
 from typing import TYPE_CHECKING, List, Tuple, cast
+
+from game_env.army import GenericUnitGroup
+from game_env.moves.ACTION_OPTION_OBSERVERS import ACTION_OPTION_OBSERVERS
+from game_env.moves.ACTION_RESOLVERS import ACTION_RESOLVERS
+from game_env.politics.politics import Politics
+
 if TYPE_CHECKING:
     from game_env.action_signal_types import ActionRequirement
     from game_env.army import UnitGroup, UnitGroupShadow
@@ -32,7 +38,9 @@ from game_env.game_env_enums import (
 )
 from game_env.hunt.hunt import Hunt, HuntBox
 from game_env.hunt.hunt_pool import HuntPool
-from game_env.moves.action_generator import ACTION_OPTION_OBSERVERS, ACTION_RESOLVERS, MovesGenerator
+from game_env.moves.move_manager import (
+    MoveManager,
+)
 from game_env.moves.move_types import MT, ActionChoice, ActionSpace
 from game_env.regions.regions_data import regions_init
 from game_env.regions.starting_positions import STARTING_POSITIONS
@@ -47,7 +55,8 @@ class WotrGame:
     phase: GAME_PHASE
     turn: int
     regions: Tuple[Region, ...]
-    active_die_player : P
+    politics: Politics
+    active_die_player: P
     verbose: bool
 
     def __init__(self, verbose: bool = False):
@@ -56,12 +65,14 @@ class WotrGame:
         print("instancing")
 
     def reset(self):
-        if self.verbose: print("resetting")
+        if self.verbose:
+            print("resetting")
         self.regions = deepcopy(regions_init)
+        self.politics = Politics()
         self.table_cards = []
 
         self.action_triage: ActionRequirement = []
-        self.moves_generator = MovesGenerator()
+        self.move_manager = MoveManager(self)
 
         self.fellowship = Fellowship(self.action_triage, self.regions)
         self.hunt_pool = HuntPool()
@@ -80,9 +91,10 @@ class WotrGame:
 
         self.minion_pos = {M.SARUMAN: None, M.MOUTH: None, M.WITCH_KING: None}
 
-    def start_game(self, verbose: bool=False):
+    def start_game(self, verbose: bool = False):
         self.verbose = verbose
-        if verbose: print("starting game")
+        if verbose:
+            print("starting game")
         self.reset()
         self.progress_game()
 
@@ -97,32 +109,32 @@ class WotrGame:
 
     def execute_player_action(self, action_choice: ActionChoice):
         # do move(s)
-        for move in action_choice:
-            ACTION_RESOLVERS[move.move_type](self, move.move_target)
+        self.move_manager.execute_player_action(action_choice)
+
+        if self.move_manager.action_ongoing:
+            return
+
         if len(self.action_triage) == 0:
             self.update_phase()
         self.progress_game()
 
     def offer_move(self):
         action_needed = self.action_triage.pop()
-        self.current_action_space = self.moves_generator.generate_moves(action_needed)
-        if self.verbose: print("=== MOVE CHOICE ===")
-        if self.verbose: 
-            for action in self.current_action_space.action_set:
-                for move in action:
-                    print(move.move_type.name)
-                    print(move.move_target)
- 
+        self.move_manager.generate_moves(action_needed)
+
     def progress_game(self):
-        if self.verbose: print("progressing game")
+        if self.verbose:
+            print("progressing game")
         if len(self.action_triage) > 0:
-            if self.verbose: print("action in triage, offering move")
+            if self.verbose:
+                print("action in triage, offering move")
             # resolve an outstanding player action
             self.offer_move()
             return
 
         else:
-            if self.verbose: print("checking phase ", self.phase.name)
+            if self.verbose:
+                print("checking phase ", self.phase.name)
             match self.phase:
                 case GP.DRAW_CARDS:
                     self.draw_cards_phase()
@@ -140,14 +152,15 @@ class WotrGame:
                 case GP.VICTORY_CHECK:
                     self.victory_check()
             if len(self.action_triage) == 0:
-                if self.verbose: self.print_game()
+                if self.verbose:
+                    self.print_game()
                 self.update_phase()
-            
+
             self.progress_game()
 
     def draw_cards_phase(self):
-        #increment turn
-        self.turn+=1
+        # increment turn
+        self.turn += 1
         # recover action dice
         for player in self.player_states:
             player.dice_pool.recover_dice()
@@ -157,17 +170,18 @@ class WotrGame:
             player.card_manager.draw_cards_move(1, 1)
 
     def hunt_allocation(self):
-        self.action_triage.append(S(MT.HUNT_ALLOCATION, move_data=self, action_player=P.SHADOW))
+        self.action_triage.append(
+            S(MT.HUNT_ALLOCATION, move_data=self, action_player=P.SHADOW)
+        )
 
     def action_roll(self):
         for player in self.player_states:
             player.dice_pool.action_roll()
-        
+
         shadow_pool = self.player_state_shadow.dice_pool.action_dice
         free_pool = self.player_state_free.dice_pool.action_dice
-        for i in range (len(shadow_pool) + len(free_pool) - self.hunt_box.eyes):
+        for i in range(len(shadow_pool) + len(free_pool) - self.hunt_box.eyes):
             self.action_triage.append(S(MT.RESOLVE_ACTION_DIE, move_data=self))
-
 
     def action_resolution(self):
         pass
@@ -175,12 +189,12 @@ class WotrGame:
     def victory_check(self):
         pass
 
-    def recruit(self, region_code: R, new_units: UnitGroup, units_player: P):
+    def recruit(self, region_code: R, new_units: GenericUnitGroup, units_player: P):
         region = self.regions[region_code]
         if region.army and region.army.player is not units_player:
             return
 
-        region.units = cast(UnitGroupShadow, region.units + new_units)
+        region.units = region.units + new_units
 
     def check_table_triggers(self, TAG: TABLE_CARD_TRIGGER, move: MT):
         triggered_cards = [

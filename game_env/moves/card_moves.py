@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from game_env.game_env import WotrGame
     from game_env.moves.move_types import (
@@ -12,7 +13,6 @@ if TYPE_CHECKING:
     )
 
 from game_env.event_cards.cards import HAND_LIMIT
-from game_env.moves.action_generator import ActionOperator
 
 
 def define_options(hand: CardList):

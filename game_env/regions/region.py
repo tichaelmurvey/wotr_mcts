@@ -1,12 +1,17 @@
+from __future__ import annotations
 from collections import Counter
 from enum import IntEnum
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple
 
-from game_env.army import Army, UnitGroup
-from game_env.characters import CompanionName, MinionName
-from game_env.game_env_enums import Nation, get_nation_player
-from game_env.regions_enum import R
+if TYPE_CHECKING:
+    from game_env.army import GenericUnitGroup
+    from game_env.characters import CompanionName, MinionName
+    from game_env.game_env_enums import P, Nation
+    from game_env.regions_enum import R
+    from game_env.game_env import WotrGame
 
+from game_env.game_env_enums import get_nation_player
+from game_env.army import Army
 
 class RegionFeature(IntEnum):
     TOWN = 0
@@ -18,7 +23,7 @@ class RegionFeature(IntEnum):
 RF = RegionFeature
 
 class RegionBase:
-    units: UnitGroup
+    units: GenericUnitGroup
 
     def __init__(self):
         self.units = Counter()
@@ -40,28 +45,44 @@ class RegionBase:
 class Region(RegionBase):
     def __init__(
         self,
+        game_env: WotrGame,
         idx: R,
         name: str,
         adj_regions: set[R],
         nation: Nation | None = None,
         features: set[RegionFeature] | None = None,
     ):
-        self.occupied = False
+        self.game_env = game_env
         self.idx = idx
         self.name = name
         self.nation = nation
+        self.orig_loyalty = get_nation_player(nation) if self.has_settlement and nation else None
         self.adj_regions = adj_regions
         self.features = features
-        self.has_settlement = (
-            True if features and features & {RF.STRONGHOLD, RF.CITY, RF.TOWN} else False
-        )
-        self.control = (
-            get_nation_player(nation) if self.has_settlement and nation else None
-        )
+        self.has_settlement = True if features and features & {RF.STRONGHOLD, RF.CITY, RF.TOWN} else False
+        self.city_or_stronghold = True if features and features & {RF.STRONGHOLD, RF.CITY} else False
+        self.control = self.orig_loyalty
         super().__init__()
 
-    def set_starting_units(self, units: UnitGroup):
+    def set_starting_units(self, units: GenericUnitGroup):
         self.units = units
+
+    def can_muster_action(self, player : P):
+        if not self.has_settlement or not self.nation:
+            return False
+
+        if self.orig_loyalty is not player:
+            return False
+        
+        if self.control is not player:
+            return False
+        
+        if not self.game_env.politics.nations[self.nation].at_war:
+            return False
+        
+        return True
+        
+
 
 def get_n_regions_away(region_id: R, n_steps: int, regions: Tuple[Region, ...]) -> Tuple[R, ...]:
     current_region = regions[region_id]

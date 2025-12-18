@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 import random
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from game_env.game_env import WotrGame
     from game_env.action_signal_types import S
@@ -13,12 +14,13 @@ from game_env.game_env_enums import (
 from game_env.hunt.hunt_pool import HuntPool
 from game_env.hunt.hunt_tiles import HuntTile
 
-from game_env.moves.action_generator import MT
+from game_env.moves.move_types import MT
+
 
 @dataclass
 class HuntBox:
-    fp_dice : int = 0
-    eyes : int = 0
+    fp_dice: int = 0
+    eyes: int = 0
 
 
 class HuntPhase(IntEnum):
