@@ -3,9 +3,13 @@ Move types
 """
 
 from __future__ import annotations
+from argparse import Action
 from typing import TYPE_CHECKING, Callable, Dict, List, NamedTuple, Tuple, Any
 from enum import IntEnum
 from dataclasses import dataclass
+
+from game_env.action_dice.dice import ActionDie, ActionResult
+from game_env.army import GenericUnitGroup
 
 if TYPE_CHECKING:
     from game_env.characters import CompanionName, MinionName
@@ -59,6 +63,11 @@ class MoveType(IntEnum):
     USE_RING_FP = 28
     USE_RING_SP = 29
 
+    # Partial move actions
+    CHOOSE_ACTION_DIE = 30
+    CHOOSE_MOVE_GROUP_UNITS = 31
+    CHOOSE_MOVE_GROUP_CHARACTERS = 32
+
 
 MT = MoveType
 
@@ -76,6 +85,9 @@ class March(NamedTuple):
 
 
 type MusterTarget = Tuple[R, AU, int]
+type HalfMove = Tuple[R, R, GenericUnitGroup]
+type UnitGroupChoice = GenericUnitGroup
+type CharacterGroupMoveChoice = set[MinionName] | set[CompanionName]
 
 type MoveTarget = (
     None
@@ -87,6 +99,9 @@ type MoveTarget = (
     | March
     | int
     | str
+    | HalfMove
+    | UnitGroupChoice
+    | CharacterGroupMoveChoice
     | Tuple[R, R]
     | Tuple[R, str, int]
     | Tuple[R, CompanionName]
@@ -116,6 +131,48 @@ class MoveOptionSet:
 MOS = MoveOptionSet
 
 
+class PassDec(IntEnum):
+    Pass = 0
+    Play = 1
+
+
+class ActionDieResolveChoice(IntEnum):
+    DOUBLE_MOVE = 0
+    ATTACK = 1
+    LEADER_MOVE = 2
+    LEADER_ATTACK = 3
+    DRAW_CARD = 4
+    PLAY_CARD = 5
+    RECRUIT_MINION = 6
+    RECRUIT_DICE_COMPANION = 7
+    MUSTER_POLITICS = 8
+    MUSTER_UNITS = 9
+    MOVE_FELLOWSHIP = 10
+    HIDE_FELLOWSHIP = 11
+    SEPERATE_COMPANIONS = 12
+    MOVE_COMPANIONS = 13
+    USE_RING = 14
+
+
+ADResolve = ActionDieResolveChoice
+
+# decision particles, not a total move
+type ActionDieDecisionNode = PassDec | ActionResult | ADResolve | R | GenericUnitGroup
+
+type ActionDieDecisionChain = list[ActionDieDecisionNode]
+
+ADChain = ActionDieDecisionChain
+
+
+@dataclass
+class ActionDieDecisionBranch:
+    dec: ActionDieDecisionNode | None
+    opts: list[ActionDieDecisionBranch]
+
+
+ADBranch = ActionDieDecisionBranch
+
+
 @dataclass
 class OptionBranch:
     this_step_choice: MoveOption
@@ -124,7 +181,7 @@ class OptionBranch:
 
 @dataclass
 class MoveOptionTree:
-    option_branches: list[OptionBranch]
+    next_step_options: list[OptionBranch]
     shared_state: Any = ""
 
 

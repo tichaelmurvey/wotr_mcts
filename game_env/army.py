@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from collections import Counter
 from enum import IntEnum
-from typing import TYPE_CHECKING, Dict, List, NamedTuple, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Dict, List, Literal, NamedTuple, Optional, Tuple, cast
 from game_env.characters import CHARACTER_STATS, CompanionName, MinionName
 from game_env.game_env_enums import N, P, Nation
+
+STACK_LIMIT = 10
 
 
 class FreeUnit(IntEnum):
@@ -63,7 +65,6 @@ class ArmyUnit(IntEnum):
     mord_elt = 18
     east_reg = 19
     east_elt = 20
-    nazgul = 21
 
 
 AU = ArmyUnit
@@ -84,6 +85,7 @@ UnitGroupFree = Counter[FreeUnit]
 
 type UnitGroup = UnitGroupShadow | UnitGroupFree
 type GenericUnitGroup = Counter[ArmyUnit]
+type GenericUnitGroupWithNazgul = Counter[ArmyUnit | Literal["nazgul"]]
 
 
 class ArmyStats(NamedTuple):
@@ -125,14 +127,18 @@ class Army:
     def __init__(
         self,
         units: GenericUnitGroup,
-        minions: set[MinionName] | None = None,
-        companions: set[CompanionName] | None = None,
+        minions_nonwk: set[MinionName] | None = None,
+        wking: bool = False,
+        gtw: bool = False,
+        companions_nogtw: set[CompanionName] | None = None,
         nazgul: int = 0,
     ):
         self.units = units
         self.player = get_unit_group_player(units)
-        self.minions = minions
-        self.companions = companions
+        self.wk = wking
+        self.gtw = gtw
+        self.minions_nonwk = minions_nonwk
+        self.companions_nogtw = companions_nogtw
         self.nazgul = nazgul
         self.strength = 0
         self.leadership = 0
@@ -156,24 +162,31 @@ class Army:
             elif unit.name.endswith("_ldr"):
                 leadership += count
 
-        if self.minions:
-            for name in self.minions:
+        if self.minions_nonwk:
+            for name in self.minions_nonwk:
                 leadership += CHARACTER_STATS[name].leadership
 
-        if self.companions:
-            for name in self.companions:
+        if self.companions_nogtw:
+            for name in self.companions_nogtw:
                 leadership += CHARACTER_STATS[name].leadership
 
         leadership += self.nazgul
 
         self.strength, self.leadership = strength, leadership
 
-    def get_unit_count(self) -> int:
+    @staticmethod
+    def calc_unit_count(group: GenericUnitGroup) -> int:
         total = 0
-        for unit, count in self.units.items():
+        for unit, count in group.items():
             if not unit.name.endswith("_ldr"):
                 total += cast(int, count)
         return total
+
+    def get_unit_count(self) -> int:
+        return self.calc_unit_count(self.units)
+
+    def get_nazgul_count(self) -> int:
+        return self.nazgul + (1 if self.wk else 0)
 
     def calc_army_nations(self):
         """Get the nation a unit belongs to based on its name prefix."""

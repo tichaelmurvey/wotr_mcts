@@ -1,4 +1,5 @@
 from __future__ import annotations
+from argparse import Action
 from dataclasses import dataclass
 from itertools import combinations
 from typing import TYPE_CHECKING, Any, Callable, List, Tuple
@@ -20,18 +21,11 @@ if TYPE_CHECKING:
 
 
 class MoveManager:
-    action_tree: MoveOptionTree | None
+    action_tree: MoveOptionTree | OptionBranch | None
 
     def __init__(self, game_env: WotrGame):
         self.game_env = game_env
-        self.action_ongoing = False
         self.action_tree = None
-
-    def execute_player_action(self, action_choice: ActionChoice):
-        if self.action_ongoing:
-            pass
-        for move in action_choice:
-            ACTION_RESOLVERS[move.move_type](self.game_env, move.move_target)
 
     def generate_moves(
         self, action_signal: ActionSignal, policy: OptsPolicy = OptsPolicy.FLAT
@@ -43,16 +37,21 @@ class MoveManager:
         move_definition = ACTION_OPTION_OBSERVERS[action_signal.action_type](
             action_signal.move_data
         )
+
         if isinstance(move_definition, MoveOptionTree):
-            self.action_ongoing = True
-            self.action_tree = move_definition
-            step_options: ActionChoiceSet = tuple(
-                (branch.this_step_choice,) for branch in move_definition.option_branches
-            )
-            self.game_env.current_action_space = ActionSpace(step_options, 1)
+            if policy == OptsPolicy.FLAT:
+                flat_tree = flatten_tree(move_definition)
+                self.game_env.current_action_space = ActionSpace(flat_tree, 1)
+            else:
+                self.game_env.current_action_tree = move_definition
+
         else:
             moves, num_moves = MoveManager._aggregate_options(move_definition)
             self.game_env.current_action_space = ActionSpace(moves, num_moves)
+
+    def execute_player_action(self, action: ActionChoice):
+        for move in action:
+            ACTION_RESOLVERS[move.move_type](self.game_env, move.move_target)
 
     @staticmethod
     def _aggregate_options(option_set: MoveOptionSet) -> Tuple[ActionChoiceSet, int]:
@@ -70,7 +69,7 @@ class MoveManager:
 
 def flatten_tree(option_tree: MoveOptionTree) -> ActionChoiceSet:
     moves: List[List[MoveOption]] = []
-    for next_branch in option_tree.option_branches:
+    for next_branch in option_tree.next_step_options:
         moves += flatten_branch(next_branch)
     action_choice_set = tuple(tuple(inner) for inner in moves)
     return action_choice_set

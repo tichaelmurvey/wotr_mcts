@@ -41,13 +41,14 @@ from game_env.hunt.hunt_pool import HuntPool
 from game_env.moves.move_manager import (
     MoveManager,
 )
-from game_env.moves.move_types import MT, ActionChoice, ActionSpace
+from game_env.moves.move_types import MT, ActionChoice, ActionSpace, MoveOptionTree
 from game_env.regions.regions_data import regions_init
 from game_env.regions.starting_positions import STARTING_POSITIONS
 
 
 class WotrGame:
-    current_action_space: ActionSpace
+    current_action_space: ActionSpace | None
+    current_action_tree: MoveOptionTree | None
     table_cards: List[EC]
     active_hunt: Hunt | None
     minion_pos: dict[M, R | None]
@@ -111,7 +112,7 @@ class WotrGame:
         # do move(s)
         self.move_manager.execute_player_action(action_choice)
 
-        if self.move_manager.action_ongoing:
+        if self.move_manager.action_tree is not None:
             return
 
         if len(self.action_triage) == 0:

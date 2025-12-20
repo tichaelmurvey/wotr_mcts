@@ -18,6 +18,9 @@ class DicePool:
                 continue
             die.roll()
 
+    def get_unused_die_results(self):
+        return [die.current_result for die in self.action_dice if not die.action_used]
+
     def get_dice_results(self):
         return [die.current_result for die in self.action_dice]
 

@@ -5,23 +5,23 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from game_env.moves.move_types import MT, ExecuteFn
 
-from game_env.moves import card_moves, fellowship_moves, resolve_action_die
+from game_env.moves import card_moves, define_action_die_moves, fellowship_moves
 
 ACTION_RESOLVERS: dict[MT, ExecuteFn] = {
     MT.EVENT_CARD_DISCARD: card_moves.execute_action,
     MT.CHANGE_GUIDE: fellowship_moves.execute_action_guide,
     MT.DECLARE_FELLOWSHIP: fellowship_moves.execute_action_declare,
     MT.HUNT_ALLOCATION: fellowship_moves.execute_action_hunt_allocation,
-    MT.RESOLVE_ACTION_DIE: resolve_action_die.execute_resolve_die,
+    MT.RESOLVE_ACTION_DIE: define_action_die_moves.execute_resolve_die,
     # Die action executors
-    MT.MOVE_ARMY: resolve_action_die.execute_move_army,
-    MT.ATTACK: resolve_action_die.execute_attack,
-    MT.MUSTER: resolve_action_die.execute_muster,
-    MT.ADVANCE_NATION_POLITICS: resolve_action_die.execute_advance_politics,
-    MT.MOVE_FELLOWSHIP: resolve_action_die.execute_fellowship_move,
-    MT.HIDE_FELLOWSHIP: resolve_action_die.execute_hide_fellowship,
-    MT.DRAW_CARD: resolve_action_die.execute_draw_card,
-    MT.PASS: resolve_action_die.execute_pass,
+    MT.MOVE_ARMY: define_action_die_moves.execute_move_army,
+    MT.ATTACK: define_action_die_moves.execute_attack,
+    MT.MUSTER: define_action_die_moves.execute_muster,
+    MT.ADVANCE_NATION_POLITICS: define_action_die_moves.execute_advance_politics,
+    MT.MOVE_FELLOWSHIP: define_action_die_moves.execute_fellowship_move,
+    MT.HIDE_FELLOWSHIP: define_action_die_moves.execute_hide_fellowship,
+    MT.DRAW_CARD: define_action_die_moves.execute_draw_card,
+    MT.PASS: define_action_die_moves.execute_pass,
 }
 
 """

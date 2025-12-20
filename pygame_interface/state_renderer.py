@@ -45,16 +45,20 @@ class StateRenderer:
         Args:
             game: The WotrGame instance to read state from
         """
-        if self.interface.debug: print("update_from_game")
-        if self.interface.debug: print("update_regions")
+        if self.interface.debug:
+            print("update_from_game")
+        if self.interface.debug:
+            print("update_regions")
         self._update_regions(game)
         self._update_fellowship(game)
         self._update_player_state(game)
         self._update_cards(game)
         self._update_dice(game)
-        if self.interface.debug: print("update_phase_info")
+        if self.interface.debug:
+            print("update_phase_info")
         self._update_phase_info(game)
-        if self.interface.debug: print("end of update_from_game")
+        if self.interface.debug:
+            print("end of update_from_game")
 
     def _update_regions(self, game: "WotrGame"):
         """Update region unit data from game state."""
@@ -75,11 +79,11 @@ class StateRenderer:
 
             # Update characters
             characters = []
-            if region.companions:
-                for companion in region.companions:
+            if region.wild_companions:
+                for companion in region.wild_companions:
                     characters.append(companion.name.lower())
-            if region.minions:
-                for minion in region.minions:
+            if region.wild_minions:
+                for minion in region.wild_minions:
                     characters.append(minion.name.lower())
             if characters:
                 board.set_region_characters(r_enum, characters)
@@ -140,7 +144,7 @@ class StateRenderer:
         # Update reinforcement pools
         self._update_reinforcement_pools(game)
 
-    def _count_available_dice(self, dice_pool : DicePool) -> int:
+    def _count_available_dice(self, dice_pool: DicePool) -> int:
         """Count dice that haven't been used this turn."""
         return sum(1 for die in dice_pool.action_dice if not die.action_used)
 
@@ -169,18 +173,12 @@ class StateRenderer:
         """Update dice displays from game state."""
         # Free Peoples dice
         fp_dice = game.player_state_free.dice_pool.action_dice
-        fp_results = [
-            (die.current_result, die.action_used)
-            for die in fp_dice
-        ]
+        fp_results = [(die.current_result, die.action_used) for die in fp_dice]
         self.interface.sidebar.set_free_dice(fp_results)
 
         # Shadow dice
         shadow_dice = game.player_state_shadow.dice_pool.action_dice
-        shadow_results = [
-            (die.current_result, die.action_used)
-            for die in shadow_dice
-        ]
+        shadow_results = [(die.current_result, die.action_used) for die in shadow_dice]
         self.interface.sidebar.set_shadow_dice(shadow_results)
 
         # Hunt box
