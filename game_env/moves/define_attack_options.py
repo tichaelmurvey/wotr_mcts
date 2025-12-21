@@ -8,6 +8,8 @@ from typing import List
 
 from game_env.regions.region import Region
 
+# TODO: Partial attack (leaving units behind)
+
 
 def define_attack_options(
     game_env: WotrGame,

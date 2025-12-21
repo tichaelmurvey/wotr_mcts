@@ -9,5 +9,6 @@ ACTION_OPTION_OBSERVERS: dict[MT, OptionsFn] = {
     MT.CHANGE_GUIDE: fellowship_moves.define_options_guide,
     MT.DECLARE_FELLOWSHIP: fellowship_moves.define_options_declare,
     MT.HUNT_ALLOCATION: fellowship_moves.define_options_hunt_allocation,
-    MT.RESOLVE_ACTION_DIE: define_action_die_moves.define_options_resolve_die,
+    MT.PASS_OR_PLAY: define_action_die_moves.pass_or_play_opts,
+    MT.RESOLVE_ACTION_DIE: define_action_die_moves.choose_action_die_opts,
 }

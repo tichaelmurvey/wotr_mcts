@@ -15,7 +15,7 @@ from game_env.moves.move_types import MT, MoveOption
 # ============================================================================
 
 
-def define_half_move_options(
+def define_single_army_move_options(
     game_env: WotrGame,
     player: Player,
     requires_leader: bool = False,
@@ -25,7 +25,7 @@ def define_half_move_options(
 
     # For each army, find valid destination regions
     for region in game_env.regions:
-        region_moves = get_region_march_options(
+        region_moves = define_region_march_options(
             game_env, region, player, requires_leader
         )
         if region_moves is not None:
@@ -34,7 +34,7 @@ def define_half_move_options(
     return options
 
 
-def get_region_march_options(
+def define_region_march_options(
     game_env: WotrGame,
     region: Region,
     player: Player,

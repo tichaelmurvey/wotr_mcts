@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from game_env.action_dice.dice import ActionDie, ActionResult
+from game_env.action_dice.dice import A, ActionDie, ActionResult
 
 
 DiceSet = Tuple[ActionDie, ...]
@@ -27,3 +27,17 @@ class DicePool:
     def recover_dice(self):
         # TODO: Set all dice to used = false
         pass
+
+    def get_non_available_sides(self) -> list[ActionResult]:
+        conversion_options: list[ActionResult] = []
+        active_results = self.get_unused_die_results()
+        for side in self.action_dice[0].sides:
+            if side in active_results:
+                continue
+            if side is A.WILL:
+                continue
+            conversion_options.append(side)
+        return conversion_options
+
+    def is_ring_useful(self) -> bool:
+        return len(self.get_non_available_sides()) is not 0

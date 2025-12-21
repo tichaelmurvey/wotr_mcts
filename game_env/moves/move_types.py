@@ -39,7 +39,7 @@ class MoveType(IntEnum):
     SHADOWS_GATHER = 9
     HUNT_ALLOCATION = 10
 
-    # Dice resolutions
+    # Dice Actions
     MOVE_ARMY = 11
     MOVE_COMPANIONS = 12
     MOVE_MINIONS = 13
@@ -60,13 +60,19 @@ class MoveType(IntEnum):
     CONVERT_TO_EYE = 25
     CONVERT_TO_WOTW = 26
     KILL_WOTW = 27
-    USE_RING_FP = 28
-    USE_RING_SP = 29
+    USE_RING = 28
+    CHOOSE_CONVERT_DIE = 35
+    CONVERT_DIE_WITH_RING = 34
 
-    # Partial move actions
+    # Dice Resolution
+    PASS_OR_PLAY = 29
     CHOOSE_ACTION_DIE = 30
+    CHOOSE_DIE_RESOLUTION = 36
+
+    # Partial army movement
     CHOOSE_MOVE_GROUP_UNITS = 31
     CHOOSE_MOVE_GROUP_CHARACTERS = 32
+    DOUBLE_MOVE = 37
 
 
 MT = MoveType
@@ -89,6 +95,15 @@ type HalfMove = Tuple[R, R, GenericUnitGroup]
 type UnitGroupChoice = GenericUnitGroup
 type CharacterGroupMoveChoice = set[MinionName] | set[CompanionName]
 
+
+class PassDec(IntEnum):
+    Pass = 0
+    Play = 1
+
+
+type DieToConvert = ActionResult
+type ResolutionOption = Tuple[ActionResult, MT]
+
 type MoveTarget = (
     None
     | CardReference
@@ -99,6 +114,7 @@ type MoveTarget = (
     | March
     | int
     | str
+    | PassDec
     | HalfMove
     | UnitGroupChoice
     | CharacterGroupMoveChoice
@@ -109,6 +125,8 @@ type MoveTarget = (
     | Tuple[MinionName, R]
     | Tuple[MinionName, None]
     | MusterTarget
+    | DieToConvert
+    | ResolutionOption
 )
 
 
@@ -129,11 +147,6 @@ class MoveOptionSet:
 
 
 MOS = MoveOptionSet
-
-
-class PassDec(IntEnum):
-    Pass = 0
-    Play = 1
 
 
 class ActionDieResolveChoice(IntEnum):
@@ -176,7 +189,7 @@ ADBranch = ActionDieDecisionBranch
 @dataclass
 class OptionBranch:
     this_step_choice: MoveOption
-    next_step_options: list[OptionBranch] | None
+    next_step_options: list[OptionBranch]
 
 
 @dataclass

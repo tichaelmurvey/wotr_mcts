@@ -1,8 +1,6 @@
 from __future__ import annotations
-from argparse import Action
-from dataclasses import dataclass
 from itertools import combinations
-from typing import TYPE_CHECKING, Any, Callable, List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 from game_env.moves.ACTION_OPTION_OBSERVERS import ACTION_OPTION_OBSERVERS
 from game_env.moves.ACTION_RESOLVERS import ACTION_RESOLVERS
 from game_env.moves.move_types import (
@@ -21,8 +19,6 @@ if TYPE_CHECKING:
 
 
 class MoveManager:
-    action_tree: MoveOptionTree | OptionBranch | None
-
     def __init__(self, game_env: WotrGame):
         self.game_env = game_env
         self.action_tree = None

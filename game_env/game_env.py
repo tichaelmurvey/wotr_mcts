@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from game_env.regions.region import R, Region
 
 from game_env.characters import C, M
-from game_env.action_dice.dice import ActionDieFree, ActionDieShadow
+from game_env.action_dice.dice import ActionDieFree, ActionDieShadow, ActionResult
 from game_env.action_dice.dice_pool import DicePool
 from game_env.event_cards.card_data import (
     FREE_CHARACTER,
@@ -58,6 +58,7 @@ class WotrGame:
     regions: Tuple[Region, ...]
     politics: Politics
     active_die_player: P
+    converting_die: None | ActionResult
     verbose: bool
 
     def __init__(self, verbose: bool = False):
@@ -87,6 +88,7 @@ class WotrGame:
         self.phase = GP.DRAW_CARDS
         self.turn = 0
         self.active_die_player = P.FREE
+        self.converting_die = None
 
         self.reset_armies()
 
@@ -217,6 +219,7 @@ class PlayerState:
     player: Player
     card_manager: EventCardManager
     dice_pool: DicePool
+    elven_rings: int
 
     def __init__(self, action_requirement: ActionRequirement):
         self.action_requirement = action_requirement
@@ -232,6 +235,7 @@ class PlayerStateShadow(PlayerState):
     def __init__(self, action_requirement: ActionRequirement):
         super().__init__(action_requirement)
         self.player = P.SHADOW
+        self.elven_rings = 0
         self.card_manager = EventCardManager(
             action_requirement,
             P.SHADOW,
@@ -244,9 +248,14 @@ class PlayerStateFree(PlayerState):
     def __init__(self, action_requirement: ActionRequirement):
         super().__init__(action_requirement)
         self.player = P.FREE
+        self.elven_rings = 3
         self.card_manager = EventCardManager(
             action_requirement,
             P.FREE,
             PlayerDecks(Deck(FREE_CHARACTER), Deck(FREE_STRATEGY)),
         )
         self.dice_pool = DicePool(ActionDieFree, 4)
+
+
+def get_opposite_player(player: P):
+    return P.FREE if player is P.SHADOW else P.SHADOW

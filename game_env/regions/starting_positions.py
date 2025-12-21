@@ -1,13 +1,13 @@
 from collections import Counter, namedtuple
 from typing import NamedTuple, Tuple
 
-from game_env.army import AU, GenericUnitGroup
+from game_env.army import AU, GenericUnitGroup, GenericUnitGroupWithNazgul
 from game_env.regions_enum import R
 
 
 class StartingPosition(NamedTuple):
     region_id: R
-    units: GenericUnitGroup
+    units: GenericUnitGroupWithNazgul
 
 
 STARTING_POSITIONS: Tuple[StartingPosition, ...] = (
@@ -48,17 +48,17 @@ STARTING_POSITIONS: Tuple[StartingPosition, ...] = (
     StartingPosition(R.SOUTH_DUNLAND, Counter({AU.isen_reg: 1})),
     # Sauron
     StartingPosition(
-        R.BARAD_DUR, Counter({AU.mord_reg: 4, AU.mord_elt: 1, AU.nazgul: 1})
+        R.BARAD_DUR, Counter({AU.mord_reg: 4, AU.mord_elt: 1, "nazgul": 1})
     ),
     StartingPosition(
-        R.DOL_GULDUR, Counter({AU.mord_reg: 5, AU.mord_elt: 1, AU.nazgul: 1})
+        R.DOL_GULDUR, Counter({AU.mord_reg: 5, AU.mord_elt: 1, "nazgul": 1})
     ),
     StartingPosition(R.GORGOROTH, Counter({AU.mord_reg: 3})),
-    StartingPosition(R.MINAS_MORGUL, Counter({AU.mord_reg: 5, AU.nazgul: 1})),
+    StartingPosition(R.MINAS_MORGUL, Counter({AU.mord_reg: 5, "nazgul": 1})),
     StartingPosition(R.MORIA, Counter({AU.mord_reg: 2})),
     StartingPosition(R.MOUNT_GUNDABAD, Counter({AU.mord_reg: 2})),
     StartingPosition(R.NURN, Counter({AU.mord_reg: 2})),
-    StartingPosition(R.MORANNON, Counter({AU.mord_reg: 5, AU.nazgul: 1})),
+    StartingPosition(R.MORANNON, Counter({AU.mord_reg: 5, "nazgul": 1})),
     # Southrons & Easterlings
     StartingPosition(R.FAR_HARAD, Counter({AU.east_reg: 3, AU.east_elt: 1})),
     StartingPosition(R.NEAR_HARAD, Counter({AU.east_reg: 3, AU.east_elt: 1})),
@@ -92,7 +92,7 @@ REINFORCEMENTS_SHADOW = Counter(
         AU.isen_elt: 5,
         AU.mord_reg: 8,
         AU.mord_elt: 4,
-        AU.nazgul: 4,
+        "nazgul": 4,
         AU.east_reg: 10,
         AU.east_elt: 3,
     }
